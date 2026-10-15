@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% block content %}<h1>Edit task</h1><div class="card"><form method="post">{% csrf_token %}{{ form.as_p }}<button class="p">Save</button> <a href="{% url 'tasks' %}">Cancel</a></form></div>
+<form method="post" action="{% url 'task_delete' task.pk %}" onsubmit="return confirm('Delete this task permanently?')">{% csrf_token %}<button>Delete task</button></form>{% endblock %}

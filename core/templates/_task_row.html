@@ -1,0 +1,11 @@
+<div class="task {% if t.status == 'completed' %}done{% endif %}">
+ <div class="t"><a href="{% url 'task_edit' t.pk %}">{{ t.title }}</a><div class="mut">{{ t.subject }} · {{ t.est_minutes }} min · {{ t.scheduled_date|date:"D j M" }}</div></div>
+ <span class="tag {% if t.priority == 'high' %}high{% endif %}">{{ t.get_priority_display }}</span><span class="tag">{{ t.get_status_display }}</span>
+ {% if t.status == 'completed' or t.status == 'skipped' %}
+  <form class="inline" method="post" action="{% url 'task_status' t.pk %}">{% csrf_token %}<input type="hidden" name="status" value="not_started"><input type="hidden" name="next" value="{{ nxt }}"><button>Reopen</button></form>
+ {% else %}
+  {% if t.status != 'in_progress' %}<form class="inline" method="post" action="{% url 'task_status' t.pk %}">{% csrf_token %}<input type="hidden" name="status" value="in_progress"><input type="hidden" name="next" value="{{ nxt }}"><button>Start</button></form>{% endif %}
+  <form class="inline" method="post" action="{% url 'task_status' t.pk %}">{% csrf_token %}<input type="hidden" name="status" value="completed"><input type="hidden" name="next" value="{{ nxt }}"><button class="p">Done</button></form>
+  <form class="inline" method="post" action="{% url 'task_status' t.pk %}">{% csrf_token %}<input type="hidden" name="status" value="skipped"><input type="hidden" name="next" value="{{ nxt }}"><button>Skip</button></form>
+ {% endif %}
+</div>

@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}ProgressPilot{% endblock %}</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mut:#667085;--ac:#1f3864;--ok:#2e7d32;--warn:#c62828;--bd:#e3e6ea}
+@media (prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1d2127;--tx:#e8eaed;--mut:#9aa3ad;--ac:#8ab4f8;--ok:#81c784;--warn:#ef9a9a;--bd:#2d333b}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.45 system-ui,Arial,sans-serif;background:var(--bg);color:var(--tx)}
+nav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--bd)}
+nav a,nav button{color:var(--ac);text-decoration:none;background:none;border:0;font:inherit;cursor:pointer}nav .sp{flex:1}
+main{max-width:980px;margin:0 auto;padding:16px}.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.stat b{font-size:24px;display:block}.mut{color:var(--mut)}
+.task{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--bd)}.task:first-of-type{border-top:0}.task .t{flex:1;min-width:200px}
+.tag{font-size:12px;padding:1px 8px;border-radius:99px;border:1px solid var(--bd);color:var(--mut)}.high{color:var(--warn)}.done .t{text-decoration:line-through;color:var(--mut)}
+button,.btn,input,select,textarea{font:inherit;padding:5px 10px;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx)}
+button.p{background:var(--ac);color:var(--card);border-color:var(--ac);cursor:pointer}button{cursor:pointer}
+.bar{background:var(--bd);border-radius:4px;height:10px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+.cols{display:flex;gap:6px;align-items:flex-end;height:90px}.cols div{flex:1;text-align:center;font-size:11px}.cols span{display:block;background:var(--ac);min-height:2px;border-radius:3px 3px 0 0}
+dialog{max-width:560px;width:92%;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);padding:16px;top:12px}
+form.inline{display:inline}label{display:block;margin:6px 0 2px}.err{color:var(--warn)}
+</style></head><body>
+<nav><b>ProgressPilot</b>{% if user.is_authenticated %}<a href="{% url 'dashboard' %}">Dashboard</a><a href="{% url 'tasks' %}">Tasks</a><a href="{% url 'export_csv' %}">Export CSV</a><a href="{% url 'settings' %}">Settings</a><span class="sp"></span><span class="mut">{{ user.username }}</span>
+<form class="inline" method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Log out</button></form>{% endif %}</nav>
+<main>{% block content %}{% endblock %}</main></body></html>

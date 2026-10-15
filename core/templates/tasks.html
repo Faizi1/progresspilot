@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block content %}<h1>Tasks</h1>
+<form method="get" class="card">
+ <select name="when">
+  <option value="today" {% if when == 'today' %}selected{% endif %}>Today</option><option value="week" {% if when == 'week' %}selected{% endif %}>This week</option>
+  <option value="overdue" {% if when == 'overdue' %}selected{% endif %}>Overdue</option><option value="all" {% if when == 'all' %}selected{% endif %}>All</option></select>
+ <select name="status"><option value="">Any status</option>{% for v,l in statuses %}<option value="{{ v }}" {% if request.GET.status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+ <select name="priority"><option value="">Any priority</option>{% for v,l in priorities %}<option value="{{ v }}" {% if request.GET.priority == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+ <button>Filter</button></form>
+<div class="card">{% for t in page %}{% include "_task_row.html" with nxt="tasks" %}{% empty %}<p class="mut">No tasks match.</p>{% endfor %}
+{% if page.has_previous %}<a href="?when={{ when }}&page={{ page.previous_page_number }}">Prev</a>{% endif %} {% if page.has_next %}<a href="?when={{ when }}&page={{ page.next_page_number }}">Next</a>{% endif %}</div>
+<div class="card"><h2 style="margin-top:0">Add task</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button class="p">Add</button></form></div>{% endblock %}

@@ -1,0 +1,2 @@
+{% extends "base.html" %}{% block content %}<h1>Settings</h1><div class="card"><form method="post">{% csrf_token %}{{ form.as_p }}<button class="p">Save</button></form>
+<p class="mut">Timezone decides what "today" means for your dashboard and briefing (IANA name, e.g. Asia/Karachi).</p></div>{% endblock %}

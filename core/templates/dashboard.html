@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% block content %}
+{% if show_briefing %}
+<dialog id="briefing" open aria-labelledby="bt"><h2 id="bt" style="margin-top:0">Today's briefing, {{ today|date:"D j M" }}</h2>
+ {% if n_today == 0 and overdue.count == 0 %}<p>Nothing scheduled today. <a href="{% url 'tasks' %}">Schedule a task</a>.</p>{% endif %}
+ {% if high_today %}<b>High priority</b><ul>{% for t in high_today %}<li>{{ t.title }}</li>{% endfor %}</ul>{% endif %}
+ {% if todays %}<b>Today ({{ n_remaining }} remaining of {{ n_today }})</b><ul>{% for t in todays %}<li>{{ t.title }} <span class="mut">({{ t.est_minutes }} min)</span></li>{% endfor %}</ul>{% endif %}
+ {% if overdue %}<b class="err">Overdue ({{ overdue.count }})</b><ul>{% for t in overdue|slice:":5" %}<li>{{ t.title }} <span class="mut">{{ t.scheduled_date|date:"j M" }}</span></li>{% endfor %}</ul>{% endif %}
+ {% if upcoming %}<b>Next 3 days</b><ul>{% for t in upcoming|slice:":5" %}<li>{{ t.title }} <span class="mut">{{ t.scheduled_date|date:"D j M" }}</span></li>{% endfor %}</ul>{% endif %}
+ <p class="mut">Closing this does not change any task.</p><button class="p" onclick="document.getElementById('briefing').close()">Close</button></dialog>
+{% endif %}
+<h1 style="margin-bottom:4px">Dashboard</h1><div class="mut"><a href="?briefing=1">Reopen briefing</a></div>
+<div class="grid" style="margin-top:12px">
+ <div class="card stat"><b>{{ n_today }}</b>scheduled today</div><div class="card stat"><b>{{ n_done_today }}</b>done today</div>
+ <div class="card stat"><b>{{ n_remaining }}</b>remaining</div><div class="card stat"><b class="{% if overdue %}err{% endif %}">{{ overdue.count }}</b>overdue</div>
+ <div class="card stat"><b>{% if wk_pct is None %}-{% else %}{{ wk_pct }}%{% endif %}</b>this week ({{ wk_done }}/{{ wk_total }})</div>
+ <div class="card stat"><b>{% if all_pct is None %}-{% else %}{{ all_pct }}%{% endif %}</b>overall ({{ all_done }}/{{ all_total }})</div></div>
+<div class="card"><h2 style="margin-top:0">Today</h2>{% for t in todays %}{% include "_task_row.html" with nxt="dashboard" %}{% empty %}<p class="mut">No tasks today. <a href="{% url 'tasks' %}">Add one</a>.</p>{% endfor %}</div>
+{% if overdue %}<div class="card"><h2 style="margin-top:0" class="err">Overdue</h2>{% for t in overdue %}{% include "_task_row.html" with nxt="dashboard" %}{% endfor %}</div>{% endif %}
+<div class="card"><h2 style="margin-top:0">Tasks completed, last 7 days</h2>
+ {% if all_done == 0 %}<p class="mut">No completed tasks yet.</p>{% endif %}
+ <div class="cols">{% for x in last7 %}<div><span style="height:{{ x.pct }}%"></span>{{ x.n }}<br>{{ x.day|date:"D" }}</div>{% endfor %}</div></div>
+<div class="card"><h2 style="margin-top:0">Progress by subject</h2>{% for s in subjects %}<div>{{ s.subject }} <span class="mut">{{ s.done }}/{{ s.total }}</span><div class="bar"><i style="width:{{ s.pct }}%"></i></div></div><br>{% empty %}<p class="mut">No subjects yet.</p>{% endfor %}
+<p class="mut">Completed tasks measure effort, not skill. Use mock interviews and assessments to judge readiness.</p></div>
+{% endblock %}
