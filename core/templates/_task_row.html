@@ -1,6 +1,6 @@
 <div class="task {% if t.status == 'completed' %}done{% endif %}">
  <div class="t"><a href="{% url 'task_edit' t.pk %}">{{ t.title }}</a><div class="mut">{{ t.subject }} · {{ t.est_minutes }} min · {{ t.scheduled_date|date:"D j M" }}</div></div>
- <span class="tag {% if t.priority == 'high' %}high{% endif %}">{{ t.get_priority_display }}</span><span class="tag">{{ t.get_status_display }}</span>
+ <span class="tag {% if t.priority == 'high' %}high{% endif %}">{{ t.get_priority_display }}</span><span class="tag status-{{ t.status }}">{{ t.get_status_display }}</span>
  {% if t.status == 'completed' or t.status == 'skipped' %}
   <form class="inline" method="post" action="{% url 'task_status' t.pk %}">{% csrf_token %}<input type="hidden" name="status" value="not_started"><input type="hidden" name="next" value="{{ nxt }}"><button>Reopen</button></form>
  {% else %}

@@ -1,37 +1,71 @@
-# ProgressPilot (Faiz Recovery Tracker web app) - MVP
+# ProgressPilot
 
-A small multi-user Django app for daily learning/career tracking. Each user only ever sees their own tasks.
-
-## Implemented (and tested: `python manage.py test`, 13 tests)
-- Registration, login, logout (Django auth, hashed passwords); every task view/edit/delete is scoped to the logged-in user (other users get 404).
-- Dashboard: tasks today, done, remaining, overdue, this-week and overall completion, last-7-days completed bar chart, progress by subject. All from the database; empty states shown.
-- Daily briefing dialog: shown on the first dashboard visit of each day (in the user's timezone), reopen with "Reopen briefing", can be turned off in Settings. Closing it never changes tasks.
-- Tasks: add, edit, delete (with confirmation), filter (when/status/priority), Start / Done / Skip / Reopen. Completion time is stored once; reopening clears it so counts never double-count.
-- `import_plan`: loads the "60-Day Plan" sheet of the tracker workbook as your tasks. Idempotent; never overwrites progress; validates before writing.
-- CSV export of your tasks, `/health/` endpoint, per-user timezone.
-
-## NOT implemented yet (honest list)
-Learning-plan hierarchy editing (phases/modules/lessons), templates and sharing, goals and milestones, focus timer and time tracking, revision scheduling, DSA / interview / job trackers, analytics page, notifications and reminders (no scheduler, no push, no email), password reset, JSON import, rate limiting, calendar view, drag-and-drop. Tasks are the only data model now; the curriculum lives as imported tasks, not editable plans.
-Not deployed. Nothing here has been run on a hosting service.
+ProgressPilot is a multi-user Django learning and career tracker. It includes a responsive daily dashboard, tasks, editable learning curricula, goals, practice logs, job applications, revisions, and email reminders. Every private record is scoped to its owner. Current scope and limitations are listed in [FEATURE_STATUS.md](FEATURE_STATUS.md).
 
 ## Run locally
-```
+
+Python 3.13+ is expected by the project metadata.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py createsuperuser        # or register at /register/
-python manage.py import_plan YOUR_USERNAME --start 2026-10-16 --dry-run
-python manage.py import_plan YOUR_USERNAME --start 2026-10-16
 python manage.py runserver
 ```
-Open http://127.0.0.1:8000/ . Set your timezone in Settings (default Asia/Karachi).
 
-## Deploy (not performed)
-Needs a host that runs Python and keeps a disk (SQLite file) or a managed Postgres (change DATABASES; not done). Set the variables in `.env.example`, then:
+Open <http://127.0.0.1:8000/> and register an account with an email address. Local password reset emails are printed in the runserver console. The database defaults to `db.sqlite3`; set `DJANGO_DB_PATH` to use another SQLite file.
+
+## Initialize the Faiz workbook
+
+The workbook at `data/Faiz_Recovery_Tracker.xlsx` is kept unchanged. Register the account first, then preview and import its 60-Day Plan:
+
+```powershell
+python manage.py import_plan YOUR_USERNAME --start 2026-10-16 --dry-run
+python manage.py import_plan YOUR_USERNAME --start 2026-10-16
 ```
-python manage.py collectstatic --noinput && python manage.py migrate
+
+Import is idempotent. It creates the existing 60 daily tasks and an editable curriculum tree (phases, subject modules, and lessons) once. Re-running it does not overwrite task progress or duplicate the curriculum. Change the start date to the date you want Day 1 scheduled.
+
+## Reminders and email
+
+Set a reminder date/time on a task and enable notifications in Settings. By default, email uses Django's console backend, so messages are printed locally. For delivery, configure the SMTP variables in `.env.example` in the hosting environment. Never commit real credentials.
+
+The app does not run a background worker. Schedule this command every 5–15 minutes with Windows Task Scheduler, cron, or the host's scheduler:
+
+```powershell
+python manage.py send_reminders
+```
+
+The command sends due reminders for open tasks only, skips users with notifications disabled or no email address, and marks successful sends so repeated runs do not duplicate them. Failed sends remain queued for retry. The scheduler and SMTP provider must be configured by the operator.
+
+## Tests
+
+```powershell
+python manage.py test
+```
+
+The suite covers authentication, user isolation, task state and briefing behavior, workbook import, curriculum copy/privacy, goals/milestones, email reminder idempotency, and new page rendering.
+
+## Deployment preparation
+
+Deployment has not been performed. The app currently uses SQLite; use a host with persistent disk, back up the database, and confirm the host's file persistence and concurrency limits before inviting other users. Set `DJANGO_DEBUG=0`, a strong generated `DJANGO_SECRET_KEY`, correct `DJANGO_ALLOWED_HOSTS`, and `DJANGO_CSRF_TRUSTED_ORIGINS`. Configure SMTP for password reset and reminders. Terminate HTTPS at the host/proxy; secure cookies and HTTPS redirect are enabled in production settings by default.
+
+Typical host commands:
+
+```sh
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py collectstatic --noinput
+python manage.py check --deploy
 gunicorn config.wsgi
 ```
-Put it behind HTTPS. Run `DJANGO_DEBUG=0 python manage.py check --deploy` first. Back up `db.sqlite3` regularly (copy the file while the app is idle). Free tiers may sleep and may not persist disk: verify before trusting your data to one. Static files in production need a static server or WhiteNoise (not added).
 
-## Structure
-`core/models.py` (Profile, Task), `core/views.py`, `core/management/commands/import_plan.py`, `core/tests.py`. Only Python deps: Django, openpyxl, gunicorn.
+Run migrations before starting the new release and take a database backup first. Static files (including Django admin assets) need a static-file server; this repository does not include WhiteNoise or a platform-specific static configuration yet. Do not treat this as a verified production deployment until that is configured and tested on the chosen host.
+
+## Useful routes
+
+- `/` dashboard; `/tasks/` task list; `/calendar/` weekly calendar
+- `/plans/` curriculum; `/goals/`; `/focus/`; `/practice/`; `/career/`; `/analytics/`
+- `/settings/`; `/export.csv`; `/export.json`; `/tasks/import-json/`; `/health/`; `/accounts/password_reset/`
+- `/admin/` Django admin (staff users only)
